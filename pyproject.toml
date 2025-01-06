@@ -3,6 +3,7 @@ name = "example"
 version = "0.1.0"
 description = ""
 authors = ["duanluan <duanluan@example.com>"]
+license = "MIT"
 readme = "README.md"
 packages = [{include = "main", from = "src"}]
 
@@ -16,8 +17,11 @@ pyinstaller = "^6.11.1"
 [[tool.poetry.source]]
 name = "tsinghua"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
-priority = "default"
+priority = "primary"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+main = "main.setup:main"
