@@ -24,8 +24,12 @@ pyinstaller -D src/main/setup.py -n main --add-data "res;res"
 pyinstaller main.spec --noconfirm
 ```
 
-# 启动命令 Start Command
+# 命令 Command
 
 ```shell
+# 安装依赖 Install dependencies
+poetry install
+
+# 启动 Start the application
 poetry run main
 ```
