@@ -17,8 +17,11 @@ pyinstaller -D src/main/setup.py -n main --add-data "res;res"
 ```
 
 ## 通过 .spec 文件构建 Build Using a .spec File
+
+* `--noconfirm`无需确认是否覆盖上次构建的文件 No need to confirm whether to overwrite the last built file
+
 ```bash
-pyinstaller main.spec
+pyinstaller main.spec --noconfirm
 ```
 
 # 启动命令 Start Command
