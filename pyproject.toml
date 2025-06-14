@@ -1,11 +1,18 @@
-[tool.poetry]
+# The pyproject.toml file：https://python-poetry.org/docs/pyproject/
+
+[project]
 name = "example"
-version = "0.1.0"
+dynamic = ["version"]
 description = ""
-authors = ["duanluan <duanluan@example.com>"]
+authors = [
+  { name = "duanluan", email = "duanluan@example.com" }
+]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "main", from = "src"}]
+
+[tool.poetry]
+version = "0.1.0"
+packages = [{ include = "main", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<=3.13"
@@ -20,7 +27,7 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
 priority = "primary"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
