@@ -12,14 +12,19 @@ readme = "README.md"
 
 [tool.poetry]
 version = "0.1.0"
-packages = [{ include = "main", from = "src" }]
+packages = [
+  { include = "common", from = "src" },
+  { include = "app1", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<=3.13"
-pyyaml = "^6.0.2"
-py7zr = "^0.22.0"
+pyyaml = "^6.0.3"
+py7zr = "^1.0.0"
 apscheduler = "^3.11.0"
-pyinstaller = "^6.13.0"
+pyinstaller = "^6.16.0"
+pydantic="^2.11.9"
+pydantic-settings="^2.11.0"
 
 [[tool.poetry.source]]
 name = "tsinghua"
@@ -31,4 +36,4 @@ requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-main = "main.setup:main"
+app1 = "app1.app1:main"
