@@ -19,7 +19,7 @@ poetry config virtualenvs.in-project true
 
 # Temporarily set the virtual environment to be created in the project's .venv directory
 # Linux
-POETRY_VIRTUALENVS_IN_PROJECT=true poetry install
+POETRY_VIRTUALENVS_IN_PROJECT=true
 # Windows CMD
 set POETRY_VIRTUALENVS_IN_PROJECT=true
 # Windows PowerShell
