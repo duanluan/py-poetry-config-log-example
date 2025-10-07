@@ -1,35 +1,37 @@
 log:
   # Path for log files, relative to the project root or running directory.
+  # 日志文件的路径，相对于项目根目录或运行目录。
   path: logs
   # Filename for the log, excluding the file extension (which is fixed as .log).
+  # 日志文件名，不包括文件扩展名（固定为 .log）。
   file: app1
   # Level: Logs at this level or higher will be output (critical==fatal > error > warning==warn > info > debug > notset).
+  # 日志级别：将输出此级别或更高级别的日志 (critical==fatal > error > warning==warn > info > debug > notset)。
   level: info
   # Format string for log messages.
+  # 日志消息的格式字符串。
   fmt: '%(asctime)s %(levelname)s %(module)s.py, line %(lineno)d - %(message)s'
-
-  # [TEST CHANGE] Interval for log rotation set to every second.
-  # The 'when' parameter supports units like 'S' (seconds), 'M' (minutes),
-  # 'H' (hours), 'D' (days), or 'midnight'. The `interval` parameter is
-  # implicitly 1 when not specified.
-  # Original value was 'midnight'.
+  # Interval for log rotation (e.g., 'S'econds, 'M'inutes, 'H'ours, 'D'ays, 'midnight').
+  # 日志轮转（切割）的间隔 (例如, 'S'秒, 'M'分钟, 'H'小时, 'D'天, 'midnight'午夜)。
   when: S
-  # [TEST CHANGE] Number of backup log files to retain, set to 5 for easier observation during tests.
-  # Original value was 30.
+  # Number of backup log files to retain.
+  # 保留的备份日志文件数量。
   bak-count: 5
-
   # Compression level, 0-9, where 0 means no compression.
+  # 压缩级别，范围 0-9，其中 0 表示不压缩。
   compress-level: 9
   # Suffix for the compressed log archives (e.g., .7z, .zip).
+  # 压缩日志归档文件的后缀名 (例如, .7z, .zip)。
   compress-suffix: .7z
-
-  # [TEST CHANGE] Cron expression to run the compression task every minute for testing.
-  # Original value was '0 1 * * *' (every day at 01:00).
+  # Cron expression for the scheduled log compression task.
+  # 定时日志压缩任务的 Cron 表达式。
   compress-schedule-cron: '* * * * *'
   # Number of compressed backup archives to retain.
+  # 保留的已压缩备份归档文件数量。
   compress-bak-count: 8
 
 # Custom application-specific settings can be defined here.
+# 可以在此处定义应用程序特定的自定义设置。
 custom:
   key1: value1
   key2:
