@@ -15,9 +15,6 @@ def run_test(duration_seconds: int):
   app_context.init(TEST_CONFIG_PATH, "app1_test")
   app_context.log.info(app_context.config)
 
-  # LogArchiver is no longer needed, so its initialization can be omitted.
-  # LogArchiver.from_config(app_context.log, app_context.config).start()
-
   # Ensure the log directory exists.
   log_dir = app_context.config.log.path
   if not os.path.exists(log_dir):

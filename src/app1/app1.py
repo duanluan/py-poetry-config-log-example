@@ -2,16 +2,10 @@ import time
 
 # Import the application context and the log archiver module.
 from common import app_context
-from common.log.log_archiver import LogArchiver
-
 
 def main():
   # Initialize the application context. This loads the configuration from a file and sets up the global logger instance.
   app_context.init('app1/res/config.yml', "app1")
-
-  # Create and start the log archiver using the globally available config and log objects.
-  # Accessing them via the `app_context` module ensures we use the initialized instances.
-  LogArchiver.from_config(app_context.log, app_context.config).start()
 
   try:
     # Log the loaded configuration for debugging or verification purposes.
