@@ -1,14 +1,22 @@
-import os
+﻿import os
 from logging import Logger
 
 from common.proxy import ContextProxy
-from common.conf.config import load_config_yml, LogSettings, AppSettings
+from common.conf.config import load_config_yml, LogSettings, AppSettings, find_project_root
 from common.log.logger_factory import create_logger
 
-# Use instances of the proxy class as global variables
-# 使用代理类的实例作为全局变量
+# Use instances of the proxy class as global variables.
+# 使用代理类的实例作为全局变量。
 config: AppSettings = ContextProxy()
 log: Logger = ContextProxy()
+
+
+def is_initialized() -> bool:
+  """
+  Returns whether both config and logger proxies are initialized.
+  返回 config 与 logger 代理是否都已初始化。
+  """
+  return config.is_initialized() and log.is_initialized()
 
 
 def init(config_file_path: str, logger_name: str):
@@ -26,18 +34,24 @@ def init(config_file_path: str, logger_name: str):
   # Load configuration from the specified YAML file.
   # 从指定的 YAML 文件加载配置。
   loaded_config = load_config_yml(config_file_path)
-  if not loaded_config:
-    raise ValueError("Failed to load configuration.")
-
-  # Inject the loaded config into the config proxy.
-  # 将加载的配置注入到 config 代理中。
-  config.set_instance(loaded_config)
 
   # Set up the logger based on the loaded configuration.
   # 根据加载的配置设置日志记录器。
   try:
     log_settings: LogSettings = loaded_config.log
     log_path = log_settings.path
+    # Resolve relative log path from project root to avoid CWD-dependent behavior.
+    # 将相对日志路径解析为“相对项目根目录”，避免受当前工作目录影响。
+    if not os.path.isabs(log_path):
+      try:
+        project_root = str(find_project_root())
+        log_path = os.path.join(project_root, log_path)
+      except FileNotFoundError:
+        # Fallback to absolute path from CWD when project root marker is missing.
+        # 当找不到项目根标记文件时，回退为相对当前工作目录的绝对路径。
+        log_path = os.path.abspath(log_path)
+
+    log_path = os.path.normpath(log_path)
 
     # Ensure the log directory exists.
     # 确保日志目录存在。
@@ -53,12 +67,18 @@ def init(config_file_path: str, logger_name: str):
       fmt=log_settings.fmt,
       when=log_settings.when,
       bak_count=log_settings.bak_count,
-      compress_bak_count=log_settings.compress_bak_count
+      compress_suffix=log_settings.compress_suffix,
+      compress_bak_count=log_settings.compress_bak_count,
+      compress_level=log_settings.compress_level,
+      compress_schedule_cron=log_settings.compress_schedule_cron,
     )
+    # Inject the loaded config into the config proxy only after logger setup succeeds.
+    # 仅在日志系统初始化成功后，将加载配置注入到 config 代理中。
+    config.set_instance(loaded_config)
     # Inject the created logger into the log proxy.
     # 将创建的日志记录器注入到 log 代理中。
     log.set_instance(created_logger)
   except KeyError as e:
     raise KeyError(f"A required logging configuration key is missing: {e}")
   except Exception as e:
-    raise RuntimeError(f"Failed to set up the logging system: {e}")
+    raise RuntimeError(f"Failed to set up the logging system: {e}") from e

@@ -26,8 +26,8 @@ log:
   # Cron expression for the scheduled log compression task.
   # 定时日志压缩任务的 Cron 表达式。
   compress-schedule-cron: '* * * * *'
-  # Number of compressed backup archives to retain.
-  # 保留的已压缩备份归档文件数量。
+  # Number of compressed backup archives to retain. If smaller than bak-count, effective retention is raised to bak-count.
+  # 保留的已压缩归档数量。若小于 bak-count，为避免重复压缩，实际保留数会提升到 bak-count。
   compress-bak-count: 8
 
 # Custom application-specific settings can be defined here.

@@ -1,7 +1,7 @@
-import argparse
+﻿import argparse
 from pathlib import Path
 from pydantic_settings import BaseSettings
-from pydantic import Field, ConfigDict
+from pydantic import Field, ConfigDict, ValidationError, field_validator
 
 import yaml
 
@@ -18,11 +18,47 @@ class LogSettings(BaseSettings):
   when: str = "midnight"
   # Use an alias to allow kebab-case in the YAML file (e.g., 'bak-count').
   # 使用别名以允许在 YAML 文件中使用 kebab-case (例如, 'bak-count')。
-  bak_count: int = Field(alias="bak-count", default=30)
-  compress_level: int = Field(alias="compress-level", default=9)
+  bak_count: int = Field(alias="bak-count", default=30, ge=0)
+  compress_level: int = Field(alias="compress-level", default=9, ge=0, le=9)
   compress_suffix: str = Field(alias="compress-suffix", default=".7z")
   compress_schedule_cron: str = Field(alias="compress-schedule-cron", default="0 1 * * *")
-  compress_bak_count: int = Field(alias="compress-bak-count", default=90)
+  # Archive retention count. If smaller than bak_count, effective retention is raised to bak_count to avoid repeated recompression.
+  # 压缩归档保留数量。若小于 bak_count，为避免重复压缩，实际保留数会提升到 bak_count。
+  compress_bak_count: int = Field(alias="compress-bak-count", default=90, ge=0)
+
+  @field_validator('compress_suffix', mode='before')
+  @classmethod
+  def normalize_compress_suffix(cls, value):
+    """
+    Accept both 'zip' and '.zip' styles, normalize to '.zip' / '.7z'.
+    同时接受 'zip' 和 '.zip' 写法，统一规范为 '.zip' / '.7z'。
+    """
+    if value is None:
+      return '.7z'
+    if not isinstance(value, str):
+      raise TypeError(f"compress-suffix must be a string, got {type(value).__name__}")
+
+    suffix = value.strip().lower()
+    if not suffix:
+      return '.7z'
+    if not suffix.startswith('.'):
+      suffix = f'.{suffix}'
+    return suffix
+
+  @field_validator('compress_schedule_cron', mode='before')
+  @classmethod
+  def normalize_compress_schedule_cron(cls, value):
+    """
+    Normalize cron string and keep empty value as "disabled scheduler".
+    规范化 cron 字符串，并保留空值用于“禁用定时压缩”。
+    """
+    if value is None:
+      return ''
+    if not isinstance(value, str):
+      raise TypeError(
+        f"compress-schedule-cron must be a string, got {type(value).__name__}"
+      )
+    return value.strip()
 
 
 class AppSettings(BaseSettings):
@@ -34,7 +70,9 @@ class AppSettings(BaseSettings):
   # 通过设置 model_config，我们允许模型中未明确定义的额外字段。这使得可以从 config.yml 文件加载任何顶级键，例如 'log' 和其他自定义部分 (例如, 'database')。
   model_config = ConfigDict(extra='allow')
 
-  log: LogSettings = LogSettings()
+  # Use default_factory to avoid shared mutable defaults in model field definitions.
+  # 使用 default_factory 避免模型字段默认值的共享实例问题。
+  log: LogSettings = Field(default_factory=LogSettings)
 
 
 def find_project_root(marker_file: str = 'pyproject.toml') -> Path:
@@ -80,7 +118,7 @@ def load_config_yml(config_file_rel_path: str) -> AppSettings:
   if args.config:
     # Use the path provided via the --config command-line argument.
     # 使用通过 --config 命令行参数提供的路径。
-    config_file_abs_path = Path(args.config).resolve()
+    config_file_abs_path = Path(args.config).expanduser().resolve()
   else:
     # If not provided, construct the default path from the project root.
     # 如果未提供，则从项目根目录构建默认路径。
@@ -98,9 +136,19 @@ def load_config_yml(config_file_rel_path: str) -> AppSettings:
       full_config = yaml.safe_load(file_path)
       if full_config is None:
         full_config = {}
-  except FileNotFoundError:
-    raise FileNotFoundError(f"Configuration file not found at: {config_file_abs_path}")
-  except Exception as e:
-    raise Exception(f"Failed to read or parse the configuration file at {config_file_abs_path}: {e}")
+  except FileNotFoundError as e:
+    raise FileNotFoundError(f"Configuration file not found at: {config_file_abs_path}") from e
+  except yaml.YAMLError as e:
+    raise ValueError(f"Invalid YAML syntax in: {config_file_abs_path}. {e}") from e
+  except OSError as e:
+    raise RuntimeError(f"Failed to read configuration file: {config_file_abs_path}. {e}") from e
 
-  return AppSettings(**full_config)
+  if not isinstance(full_config, dict):
+    raise ValueError(
+      f"Configuration root must be a mapping (YAML object), got: {type(full_config).__name__}."
+    )
+
+  try:
+    return AppSettings.model_validate(full_config)
+  except ValidationError as e:
+    raise ValueError(f"Invalid configuration at {config_file_abs_path}: {e}") from e

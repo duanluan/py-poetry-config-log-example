@@ -2,16 +2,9 @@
 
 [English](./README.md) | [简体中文](./README_CN.md)
 
-[Poetry](https://python-poetry.org/) 管理依赖，使用 [PyYAML](https://pyyaml.org/) 从 yml 读取配置，自定义 [logging](https://docs.python.org/3/library/logging.html) 生成日志，使用 [APScheduler](https://apscheduler.readthedocs.io/) 和 [py7zr](https://py7zr.readthedocs.io/) 定时压缩归档日志。
+使用 [Poetry](https://python-poetry.org/) 管理依赖，使用 [PyYAML](https://pyyaml.org/) 读取 YAML 配置，基于 [logging](https://docs.python.org/3/library/logging.html) 输出并轮转日志，再结合 [APScheduler](https://apscheduler.readthedocs.io/) 和 [py7zr](https://py7zr.readthedocs.io/) 对归档日志进行压缩清理。
 
-# 在 PyCharm 中使用
-
-- 在项目视图中右键`src`目录，选择`将目标标记为` -> `源代码根目录`，以支持在代码中直接使用`src`下的模块。
-- 如果使用`module`方式运行，修改形参为`app1.app1`，工作目录为项目目录。
-
-# 命令
-
-进入项目目录。
+## 快速开始（首次运行）
 
 ```shell
 # 全局设置虚拟环境在项目目录 .venv
@@ -28,6 +21,10 @@ $env:POETRY_VIRTUALENVS_IN_PROJECT="true"
 # 安装依赖（默认在“poetry config cache-dir”下的 virtualenvs 目录中）
 poetry install
 
+# 运行应用脚本入口
+poetry run app1
+
+
 # 查看激活虚拟环境脚本
 poetry env activate
 # 激活虚拟环境（Windows）
@@ -35,35 +32,68 @@ poetry env activate
 # 退出虚拟环境（Windows）
 .venv\Scripts\deactivate.bat
 
-# 启动
-poetry run app1
-
 # 删除虚拟环境
 poetry env remove python
 ```
 
-# 打包
+说明：
 
-**首次构建**：
+- `poetry run` 无需手动激活 `.venv`。
+- 若依赖或锁文件有变更，请重新执行 `poetry install`。
 
-- `-F`单文件，`-D`单目录
-- `-n`exe 文件名
-- `--add-data`添加资源文件
-- `-p`添加指定路径到模块搜索路径（sys.path）
+## 日常运行
+
+```shell
+poetry run app1
+```
+
+可选的一次性模块运行方式：
+
+```shell
+poetry run python -m app1.app1
+```
+
+## 在 PyCharm 中使用
+
+一次设置后可长期复用：
+
+1. Interpreter：选择项目 `.venv`（Poetry 创建的虚拟环境）。
+2. 在 Project 视图中将 `src` 标记为 `Sources Root`。
+3. 新建 Run Configuration：
+   - Type：Python
+   - Run：`Module name`
+   - Module name：`app1.app1`
+   - Working directory：项目根目录
+4. 保存该配置（可选设为 shared）。
+
+如果出现 `ModuleNotFoundError: No module named 'app1'` 或 `'common'`：
+
+```shell
+poetry install
+```
+
+## 打包 EXE
+
+首次构建：
+
+- `-F` 单文件，`-D` 单目录
+- `-n` EXE 文件名
+- `--add-data` 添加资源文件
+- `-p` 添加模块搜索路径（`sys.path`）
 
 ```shell
 pyinstaller -n app1 -D --add-data "src/app1/res;res" -p src src/app1/app1.py
 ```
 
-**通过 .spec 文件构建**：
+通过 `.spec` 构建：
 
 - `--noconfirm`无需确认是否覆盖上次构建的文件
 
-```bash
+```shell
 pyinstaller app1.spec --noconfirm
 ```
 
-**运行 EXE**：
+运行 EXE：
 
 ```shell
 app1.exe --config _internal\res\config.yml

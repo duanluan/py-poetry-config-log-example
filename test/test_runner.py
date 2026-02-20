@@ -5,6 +5,7 @@ from common import app_context
 
 TEST_CONFIG_PATH = '../test/config-test.yml'
 
+
 def run_test(duration_seconds: int):
   """
   Initializes the application with a test config and runs it for a specific duration.
@@ -26,7 +27,7 @@ def run_test(duration_seconds: int):
 
   try:
     print(f"--- Generating log messages... Check the '{log_dir}' directory. ---")
-    print("--- Log files will be rotated, compressed, and cleaned up in real-time. ---")
+    print("--- Log rotation happens in real-time; compression/cleanup follow configured cron schedule. ---")
     start_time = time.time()
     count = 0
     while time.time() - start_time < duration_seconds:
@@ -37,7 +38,7 @@ def run_test(duration_seconds: int):
       time.sleep(0.5)
   except KeyboardInterrupt:
     print("\nTest interrupted by user.")
-  except Exception as e:
+  except Exception:
     app_context.log.exception('An error occurred during the test run.')
   finally:
     print("--- Test run finished. ---")
